@@ -4,6 +4,7 @@ import 'screens/login_screen.dart';
 import 'screens/my_items_screen.dart';
 import 'screens/new_item_screen.dart';
 import 'screens/profile_screen.dart';
+import 'router.dart';
 
 void main() {
   runApp(const LostFoundApp());
@@ -14,7 +15,7 @@ class LostFoundApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'LostFound UTM',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -26,7 +27,7 @@ class LostFoundApp extends StatelessWidget {
           titleLarge: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
-      home: const MainNavigationShell(),
+      routerConfig: appRouter,
     );
   }
 }
