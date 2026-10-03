@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../data/mock_data.dart';
 
 class ChatScreen extends StatelessWidget {
-  const ChatScreen({super.key});
+  final String claimId;
+
+  const ChatScreen({super.key, required this.claimId});
 
   @override
   Widget build(BuildContext context) {
@@ -10,13 +12,13 @@ class ChatScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Диалог по заявке', style: TextStyle(fontSize: 16)),
+            const Text('Диалог по заявке', style: TextStyle(fontSize: 16)),
             Text(
-              'Студенческий билет TI-236',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+              'Заявка #$claimId · Студенческий билет TI-236',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
             ),
           ],
         ),
@@ -107,7 +109,11 @@ class ChatScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   IconButton.filled(
-                    onPressed: () {},
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Сообщение отправлено')),
+                      );
+                    },
                     icon: const Icon(Icons.send),
                   ),
                 ],
