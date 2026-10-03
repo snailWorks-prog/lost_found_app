@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../data/mock_data.dart';
 import '../widgets/item_card.dart';
 import '../widgets/status_badge.dart';
-import 'chat_screen.dart';
 
 class MyItemsScreen extends StatelessWidget {
   const MyItemsScreen({super.key});
@@ -28,7 +28,11 @@ class MyItemsScreen extends StatelessWidget {
               itemCount: 3,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
-                return ItemCard(item: mockItems[index]);
+                final item = mockItems[index];
+                return ItemCard(
+                  item: item,
+                  onTap: () => context.push('/board/${item.id}'),
+                );
               },
             ),
             ListView.separated(
@@ -49,12 +53,7 @@ class MyItemsScreen extends StatelessWidget {
                     title: Text(claim.itemTitle),
                     subtitle: Text('Доказательство: ${claim.proofDescription}'),
                     trailing: StatusBadge.claim(claimStatus: claim.status),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ChatScreen()),
-                      );
-                    },
+                    onTap: () => context.push('/my-items/chat/${claim.id}'),
                   ),
                 );
               },
