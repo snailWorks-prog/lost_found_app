@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../data/mock_data.dart';
 import '../widgets/item_card.dart';
-import 'item_details_screen.dart';
 
 class BoardScreen extends StatelessWidget {
   const BoardScreen({super.key});
@@ -32,6 +32,11 @@ class BoardScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/board/new'),
+        icon: const Icon(Icons.add),
+        label: const Text('Подать объявление'),
       ),
       body: Column(
         children: [
@@ -89,14 +94,8 @@ class BoardScreen extends StatelessWidget {
                 final item = mockItems[index];
                 return ItemCard(
                   item: item,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ItemDetailsScreen(item: item),
-                      ),
-                    );
-                  },
+                  // context.push с id в URL (без extra)
+                  onTap: () => context.push('/board/${item.id}'),
                 );
               },
             ),
