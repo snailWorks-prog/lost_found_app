@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../data/mock_data.dart';
 import '../widgets/status_badge.dart';
-import 'claim_form_screen.dart';
 
 class ItemDetailsScreen extends StatelessWidget {
-  final CampusItem item;
+  final String itemId;
 
-  const ItemDetailsScreen({super.key, required this.item});
+  const ItemDetailsScreen({super.key, required this.itemId});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+
+    // Экран сам ищет объект по id из адреса (без extra)
+    final item = mockItems.firstWhere(
+          (element) => element.id == itemId,
+      orElse: () => mockItems.first,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -34,7 +40,7 @@ class ItemDetailsScreen extends StatelessWidget {
                     Icon(Icons.inventory_2_outlined, size: 64, color: scheme.outline),
                     const SizedBox(height: 8),
                     Text(
-                      'Фотография вещи',
+                      'Фотография вещи (#${item.id})',
                       style: TextStyle(color: scheme.outline),
                     ),
                   ],
@@ -105,14 +111,7 @@ class ItemDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             FilledButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ClaimFormScreen(item: item),
-                  ),
-                );
-              },
+              onPressed: () => context.push('/board/$itemId/claim'),
               icon: const Icon(Icons.front_hand_outlined),
               label: const Text('Это моя вещь (Подать заявку)'),
             ),
