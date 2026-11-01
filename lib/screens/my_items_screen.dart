@@ -59,7 +59,7 @@ class MyItemsScreen extends StatelessWidget {
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: itemsModel.items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final item = itemsModel.items[index];
                       return ItemCard(
@@ -101,7 +101,7 @@ class MyItemsScreen extends StatelessWidget {
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: claimsModel.claims.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final claim = claimsModel.claims[index];
                       return Dismissible(
