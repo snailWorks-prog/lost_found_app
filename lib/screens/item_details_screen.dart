@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../data/mock_data.dart';
+import 'package:provider/provider.dart';
+
+import '../models/items_model.dart';
+import '../widgets/error_view.dart';
 import '../widgets/status_badge.dart';
 
 class ItemDetailsScreen extends StatelessWidget {
@@ -8,19 +11,89 @@ class ItemDetailsScreen extends StatelessWidget {
 
   const ItemDetailsScreen({super.key, required this.itemId});
 
+  Future<void> _deleteItem(BuildContext context, String id) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text('Удалить объявление?'),
+        content: const Text(
+          'Вы действительно хотите удалить это объявление? Это действие нельзя отменить.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: const Text('Удалить'),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true && context.mounted) {
+      final error = await context.read<ItemsModel>().removeItem(id);
+      if (!context.mounted) return;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка удаления: $error')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Объявление успешно удалено')),
+        );
+        context.pop();
+      }
+    }
+  }
+
+  Future<void> _toggleStatus(BuildContext context, String id) async {
+    final error = await context.read<ItemsModel>().toggleResolved(id);
+    if (!context.mounted) return;
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка обновления статуса: $error')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Статус объявления обновлён')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final model = context.watch<ItemsModel>();
+    final item = model.byId(itemId);
 
-    // Экран сам ищет объект по id из адреса (без extra)
-    final item = mockItems.firstWhere(
-          (element) => element.id == itemId,
-      orElse: () => mockItems.first,
-    );
+    if (item == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Детали объявления')),
+        body: model.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : model.error != null
+                ? ErrorView(
+                    message: model.error!,
+                    onRetry: () => context.read<ItemsModel>().load(),
+                  )
+                : const Center(
+                    child: Text('Объявление не существует или было удалено'),
+                  ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Детали объявления'),
+        actions: [
+          IconButton(
+            tooltip: 'Удалить объявление',
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => _deleteItem(context, item.id),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -37,7 +110,8 @@ class ItemDetailsScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.inventory_2_outlined, size: 64, color: scheme.outline),
+                    Icon(Icons.inventory_2_outlined,
+                        size: 64, color: scheme.outline),
                     const SizedBox(height: 8),
                     Text(
                       'Фотография вещи (#${item.id})',
@@ -55,8 +129,8 @@ class ItemDetailsScreen extends StatelessWidget {
                   child: Text(
                     item.title,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
                 StatusBadge.item(
@@ -89,7 +163,8 @@ class ItemDetailsScreen extends StatelessWidget {
                     const Divider(height: 1),
                     ListTile(
                       dense: true,
-                      leading: Icon(Icons.category_outlined, color: scheme.primary),
+                      leading:
+                          Icon(Icons.category_outlined, color: scheme.primary),
                       title: const Text('Категория'),
                       subtitle: Text(item.category),
                     ),
@@ -101,15 +176,27 @@ class ItemDetailsScreen extends StatelessWidget {
             Text(
               'Подробное описание',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
             const SizedBox(height: 8),
             Text(
               item.description,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              onPressed: () => _toggleStatus(context, item.id),
+              icon: Icon(item.isResolved
+                  ? Icons.replay_outlined
+                  : Icons.check_circle_outline),
+              label: Text(
+                item.isResolved
+                    ? 'Вернуть в активные'
+                    : 'Отметить как возвращённое',
+              ),
+            ),
+            const SizedBox(height: 8),
             FilledButton.icon(
               onPressed: () => context.push('/board/$itemId/claim'),
               icon: const Icon(Icons.front_hand_outlined),
