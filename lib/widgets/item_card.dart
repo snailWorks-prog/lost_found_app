@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../data/mock_data.dart';
+import '../data/models.dart';
 import 'status_badge.dart';
 
 class ItemCard extends StatelessWidget {
