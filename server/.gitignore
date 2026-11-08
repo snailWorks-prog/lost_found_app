@@ -5,3 +5,4 @@
 app.db
 app.db-*
 uploads/
+.DS_Store
