@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,14 @@ class ItemDetailsScreen extends StatelessWidget {
   final String itemId;
 
   const ItemDetailsScreen({super.key, required this.itemId});
+
+  String _getApiBase() {
+    if (kIsWeb) return 'http://localhost:8080';
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:8080';
+    }
+    return 'http://localhost:8080';
+  }
 
   Future<void> _deleteItem(BuildContext context, String id) async {
     final ok = await showDialog<bool>(
@@ -106,20 +115,41 @@ class ItemDetailsScreen extends StatelessWidget {
                 color: scheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.inventory_2_outlined,
-                        size: 64, color: scheme.outline),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Фотография вещи (#${item.id})',
-                      style: TextStyle(color: scheme.outline),
+              clipBehavior: Clip.antiAlias,
+              child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                  ? Image.network(
+                      '${_getApiBase()}${item.imageUrl}',
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      errorBuilder: (context, error, stackTrace) => Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.broken_image_outlined,
+                                size: 64, color: scheme.outline),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Не удалось загрузить фото',
+                              style: TextStyle(color: scheme.outline),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.inventory_2_outlined,
+                              size: 64, color: scheme.outline),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Фотография вещи (#${item.id})',
+                            style: TextStyle(color: scheme.outline),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
             ),
             const SizedBox(height: 16),
             Row(

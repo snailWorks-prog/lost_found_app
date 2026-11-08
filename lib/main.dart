@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'data/auth_api.dart';
+import 'data/file_api.dart';
 import 'data/http_lost_found_repository.dart';
 import 'data/token_store.dart';
 import 'models/claims_model.dart';
@@ -33,6 +34,7 @@ void main() async {
     MultiProvider(
       providers: [
         Provider<AuthApi>(create: (_) => AuthApi(apiBase, tokens)),
+        Provider<FileApi>(create: (_) => FileApi(apiBase, tokens)),
         ChangeNotifierProvider(create: (_) => ItemsModel(repository)..load()),
         ChangeNotifierProvider(create: (_) => ClaimsModel(repository)..load()),
       ],

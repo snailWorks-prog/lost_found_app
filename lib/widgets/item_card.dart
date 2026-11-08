@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../data/models.dart';
 import 'status_badge.dart';
@@ -11,6 +12,14 @@ class ItemCard extends StatelessWidget {
     required this.item,
     this.onTap,
   });
+
+  String _getApiBase() {
+    if (kIsWeb) return 'http://localhost:8080';
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:8080';
+    }
+    return 'http://localhost:8080';
+  }
 
   IconData _categoryIcon(String category) {
     switch (category) {
@@ -52,11 +61,22 @@ class ItemCard extends StatelessWidget {
                   color: scheme.primaryContainer.withAlpha(120),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  _categoryIcon(item.category),
-                  size: 32,
-                  color: scheme.primary,
-                ),
+                clipBehavior: Clip.antiAlias,
+                child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                    ? Image.network(
+                        '${_getApiBase()}${item.imageUrl}',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          _categoryIcon(item.category),
+                          size: 32,
+                          color: scheme.primary,
+                        ),
+                      )
+                    : Icon(
+                        _categoryIcon(item.category),
+                        size: 32,
+                        color: scheme.primary,
+                      ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -68,9 +88,12 @@ class ItemCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             item.title,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -85,15 +108,16 @@ class ItemCard extends StatelessWidget {
                     Text(
                       item.description,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
+                            color: scheme.onSurfaceVariant,
+                          ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.location_on_outlined, size: 14, color: scheme.primary),
+                        Icon(Icons.location_on_outlined,
+                            size: 14, color: scheme.primary),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -105,9 +129,10 @@ class ItemCard extends StatelessWidget {
                         ),
                         Text(
                           item.date,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: scheme.outline,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: scheme.outline,
+                                  ),
                         ),
                       ],
                     ),

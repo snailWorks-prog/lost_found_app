@@ -55,7 +55,7 @@ class HttpLostFoundRepository implements LostFoundRepository {
           )
           .timeout(const Duration(seconds: 8));
 
-      if (res.statusCode == 401) return _sessionDied();
+      if (res.statusCode == 401) return await _sessionDied();
       if (res.statusCode != 200) return Err(apiMessage(res));
 
       final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -85,7 +85,7 @@ class HttpLostFoundRepository implements LostFoundRepository {
           )
           .timeout(const Duration(seconds: 8));
 
-      if (res.statusCode == 401) return _sessionDied();
+      if (res.statusCode == 401) return await _sessionDied();
       if (res.statusCode != 200) return Err(apiMessage(res));
 
       final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -112,7 +112,7 @@ class HttpLostFoundRepository implements LostFoundRepository {
           )
           .timeout(const Duration(seconds: 8));
 
-      if (res.statusCode == 401) return _sessionDied();
+      if (res.statusCode == 401) return await _sessionDied();
       if (res.statusCode != 201 && res.statusCode != 200) {
         return Err(apiMessage(res));
       }
@@ -141,7 +141,7 @@ class HttpLostFoundRepository implements LostFoundRepository {
           )
           .timeout(const Duration(seconds: 8));
 
-      if (res.statusCode == 401) return _sessionDied();
+      if (res.statusCode == 401) return await _sessionDied();
       if (res.statusCode != 200) return Err(apiMessage(res));
 
       final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -167,7 +167,7 @@ class HttpLostFoundRepository implements LostFoundRepository {
           )
           .timeout(const Duration(seconds: 8));
 
-      if (res.statusCode == 401) return _sessionDied();
+      if (res.statusCode == 401) return await _sessionDied();
       if (res.statusCode != 204 && res.statusCode != 200) {
         return Err(apiMessage(res));
       }
@@ -194,7 +194,7 @@ class HttpLostFoundRepository implements LostFoundRepository {
           )
           .timeout(const Duration(seconds: 8));
 
-      if (res.statusCode == 401) return _sessionDied();
+      if (res.statusCode == 401) return await _sessionDied();
       if (res.statusCode != 200) return Err(apiMessage(res));
 
       final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -225,7 +225,7 @@ class HttpLostFoundRepository implements LostFoundRepository {
           )
           .timeout(const Duration(seconds: 8));
 
-      if (res.statusCode == 401) return _sessionDied();
+      if (res.statusCode == 401) return await _sessionDied();
       if (res.statusCode != 201 && res.statusCode != 200) {
         return Err(apiMessage(res));
       }
@@ -253,7 +253,7 @@ class HttpLostFoundRepository implements LostFoundRepository {
           )
           .timeout(const Duration(seconds: 8));
 
-      if (res.statusCode == 401) return _sessionDied();
+      if (res.statusCode == 401) return await _sessionDied();
       if (res.statusCode != 204 && res.statusCode != 200) {
         return Err(apiMessage(res));
       }
@@ -280,7 +280,7 @@ class HttpLostFoundRepository implements LostFoundRepository {
           )
           .timeout(const Duration(seconds: 8));
 
-      if (res.statusCode == 401) return _sessionDied();
+      if (res.statusCode == 401) return await _sessionDied();
       if (res.statusCode != 200) return Err(apiMessage(res));
 
       final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -311,7 +311,7 @@ class HttpLostFoundRepository implements LostFoundRepository {
           )
           .timeout(const Duration(seconds: 8));
 
-      if (res.statusCode == 401) return _sessionDied();
+      if (res.statusCode == 401) return await _sessionDied();
       if (res.statusCode != 201 && res.statusCode != 200) {
         return Err(apiMessage(res));
       }
