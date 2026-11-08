@@ -1,17 +1,38 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'data/mock_lost_found_repository.dart';
+
+import 'data/auth_api.dart';
+import 'data/http_lost_found_repository.dart';
+import 'data/token_store.dart';
 import 'models/claims_model.dart';
 import 'models/items_model.dart';
 import 'router.dart';
 
-void main() {
-  final repository = MockLostFoundRepository();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final apiBase = kIsWeb
+      ? 'http://localhost:8080'
+      : (defaultTargetPlatform == TargetPlatform.android
+          ? 'http://10.0.2.2:8080'
+          : 'http://localhost:8080');
+
+  final tokens = TokenStore();
+  final loggedIn = await tokens.read() != null;
+
+  appRouter = createAppRouter(loggedIn: loggedIn);
+
+  final repository = HttpLostFoundRepository(
+    apiBase,
+    tokens,
+    onUnauthorized: () => appRouter.go('/login'),
+  );
 
   runApp(
     MultiProvider(
       providers: [
-        Provider<MockLostFoundRepository>.value(value: repository),
+        Provider<AuthApi>(create: (_) => AuthApi(apiBase, tokens)),
         ChangeNotifierProvider(create: (_) => ItemsModel(repository)..load()),
         ChangeNotifierProvider(create: (_) => ClaimsModel(repository)..load()),
       ],

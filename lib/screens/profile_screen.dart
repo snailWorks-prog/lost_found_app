@@ -2,25 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../data/mock_lost_found_repository.dart';
+import '../data/auth_api.dart';
 import '../models/claims_model.dart';
 import '../models/items_model.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  late bool _simulateError;
-
-  @override
-  void initState() {
-    super.initState();
-    _simulateError = context.read<MockLostFoundRepository>().simulateError;
-  }
 
   Future<void> _logout(BuildContext context) async {
     final ok = await showDialog<bool>(
@@ -44,10 +31,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (ok == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Вы вышли из профиля')),
-      );
-      context.go('/login');
+      await context.read<AuthApi>().logout();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Вы вышли из профиля')),
+        );
+        context.go('/login');
+      }
     }
   }
 
@@ -164,41 +154,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Отладка и симуляция',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: scheme.primary,
-                    ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              elevation: 0,
-              color: scheme.surfaceContainerLow,
-              child: SwitchListTile(
-                title: const Text('Симулировать сбой сети'),
-                subtitle: const Text(
-                  'Запросы к Mock-репозиторию будут возвращать ошибку сети',
-                ),
-                secondary: Icon(
-                  Icons.wifi_off_outlined,
-                  color:
-                      _simulateError ? scheme.error : scheme.onSurfaceVariant,
-                ),
-                value: _simulateError,
-                onChanged: (value) {
-                  setState(() {
-                    _simulateError = value;
-                  });
-                  context.read<MockLostFoundRepository>().simulateError =
-                      value;
-                },
               ),
             ),
             const SizedBox(height: 32),
