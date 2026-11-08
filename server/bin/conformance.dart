@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 Future<void> main(List<String> args) async {
   var baseUrl = 'http://localhost:8080';
@@ -407,7 +408,7 @@ Future<void> main(List<String> args) async {
     fail(37, 'GET /files/99999', 'Got ${r.statusCode} ${r.body}');
   }
 
-  print('\nPASS 37/37 checks passed');
+  print('\nPASS $passed/37 checks passed');
   client.close();
 }
 

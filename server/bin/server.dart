@@ -10,9 +10,11 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 
 import 'package:server/auth.dart';
+import 'package:server/claims.dart';
 import 'package:server/db.dart';
 import 'package:server/errors.dart';
 import 'package:server/files.dart';
+import 'package:server/items.dart';
 import 'package:server/notes.dart';
 
 Future<void> main() async {
@@ -27,12 +29,25 @@ Future<void> main() async {
         ..post('/auth/register', register)
         ..post('/auth/login', login)
         ..get('/me', requireAuth(me))
-        // Notes: the example entity. Register your own routes the same way.
+        // Notes: the example entity.
         ..get('/notes', requireAuth(listNotes))
         ..post('/notes', requireAuth(createNote))
         ..get('/notes/<id>', requireAuth(getNote))
         ..put('/notes/<id>', requireAuth(updateNote))
         ..delete('/notes/<id>', requireAuth(deleteNote))
+        // Items
+        ..get('/items', requireAuth(listItems))
+        ..post('/items', requireAuth(createItem))
+        ..get('/items/<id>', requireAuth(getItem))
+        ..put('/items/<id>', requireAuth(updateItem))
+        ..delete('/items/<id>', requireAuth(deleteItem))
+        // Claims & Messages
+        ..get('/claims', requireAuth(listClaims))
+        ..post('/claims', requireAuth(createClaim))
+        ..delete('/claims/<id>', requireAuth(deleteClaim))
+        ..get('/claims/<id>/messages', requireAuth(listMessages))
+        ..post('/claims/<id>/messages', requireAuth(createMessage))
+        // Files
         ..post('/files', requireAuth(uploadFile))
         ..get('/files/<id>', downloadFile);
 
