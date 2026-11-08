@@ -12,9 +12,19 @@ class ItemsModel extends ChangeNotifier {
   String? _error;
   List<CampusItem> _items = const [];
 
+  int _page = 1;
+  final int _limit = 20;
+  bool _hasMore = false;
+  bool _loadingMore = false;
+  String _search = '';
+
   bool get isLoading => _loading;
   String? get error => _error;
   List<CampusItem> get items => List.unmodifiable(_items);
+
+  bool get hasMore => _hasMore;
+  bool get isLoadingMore => _loadingMore;
+  String get search => _search;
 
   int get activeCount => _items.where((i) => !i.isResolved).length;
   int get resolvedCount => _items.where((i) => i.isResolved).length;
@@ -27,20 +37,52 @@ class ItemsModel extends ChangeNotifier {
     }
   }
 
-  Future<void> load() async {
+  Future<void> load({String? search}) async {
+    _search = search ?? _search;
+    _page = 1;
     _loading = true;
     _error = null;
     notifyListeners();
 
-    final result = await _repository.fetchItems();
+    final result = await _repository.fetchItems(
+      page: 1,
+      limit: _limit,
+      search: _search,
+    );
     switch (result) {
       case Ok(:final value):
         _items = List.from(value);
+        _hasMore = value.length == _limit;
         _error = null;
       case Err(:final msg):
         _error = msg;
     }
     _loading = false;
+    notifyListeners();
+  }
+
+  Future<void> loadMore() async {
+    if (_loadingMore || _loading || !_hasMore) return;
+
+    _loadingMore = true;
+
+    final nextPage = _page + 1;
+    final result = await _repository.fetchItems(
+      page: nextPage,
+      limit: _limit,
+      search: _search,
+    );
+
+    switch (result) {
+      case Ok(:final value):
+        _page = nextPage;
+        _items = [..._items, ...value];
+        _hasMore = value.length == _limit;
+      case Err():
+        _hasMore = false;
+    }
+
+    _loadingMore = false;
     notifyListeners();
   }
 

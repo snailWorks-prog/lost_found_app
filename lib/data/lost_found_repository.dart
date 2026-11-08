@@ -2,7 +2,11 @@ import 'models.dart';
 import 'result.dart';
 
 abstract class LostFoundRepository {
-  Future<Result<List<CampusItem>>> fetchItems();
+  Future<Result<List<CampusItem>>> fetchItems({
+    int page = 1,
+    int limit = 20,
+    String? search,
+  });
   Future<Result<CampusItem>> fetchItemById(String id);
   Future<Result<CampusItem>> createItem(CampusItem draft);
   Future<Result<CampusItem>> updateItem(CampusItem item);

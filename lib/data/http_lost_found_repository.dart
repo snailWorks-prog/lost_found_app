@@ -36,11 +36,21 @@ class HttpLostFoundRepository implements LostFoundRepository {
   }
 
   @override
-  Future<Result<List<CampusItem>>> fetchItems() async {
+  Future<Result<List<CampusItem>>> fetchItems({
+    int page = 1,
+    int limit = 20,
+    String? search,
+  }) async {
     try {
+      final uri = Uri.parse('$baseUrl/items').replace(queryParameters: {
+        'page': '$page',
+        'limit': '$limit',
+        if (search != null && search.isNotEmpty) 'search': search,
+      });
+
       final res = await http
           .get(
-            Uri.parse('$baseUrl/items'),
+            uri,
             headers: await _headers(),
           )
           .timeout(const Duration(seconds: 8));

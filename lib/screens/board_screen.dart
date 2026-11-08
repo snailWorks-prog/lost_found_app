@@ -17,7 +17,6 @@ class BoardScreen extends StatefulWidget {
 
 class _BoardScreenState extends State<BoardScreen> {
   int _selectedTypeIndex = 0;
-  String _searchQuery = '';
   String _selectedLocationFilter = 'Все корпуса';
 
   final _searchController = TextEditingController();
@@ -50,17 +49,6 @@ class _BoardScreenState extends State<BoardScreen> {
       if (_selectedLocationFilter == 'Библиотека' &&
           !item.location.toLowerCase().contains('библио')) {
         return false;
-      }
-
-      // 3. Search query filter
-      if (_searchQuery.isNotEmpty) {
-        final q = _searchQuery.toLowerCase();
-        final matchTitle = item.title.toLowerCase().contains(q);
-        final matchLoc = item.location.toLowerCase().contains(q);
-        final matchDesc = item.description.toLowerCase().contains(q);
-        if (!matchTitle && !matchLoc && !matchDesc) {
-          return false;
-        }
       }
 
       return true;
@@ -127,16 +115,18 @@ class _BoardScreenState extends State<BoardScreen> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: TextField(
               controller: _searchController,
-              onChanged: (val) => setState(() => _searchQuery = val.trim()),
+              onSubmitted: (val) {
+                context.read<ItemsModel>().load(search: val.trim());
+              },
               decoration: InputDecoration(
-                hintText: 'Поиск по названию или аудитории...',
+                hintText: 'Серверный поиск по названию или месту (Enter)...',
                 prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty
+                suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
-                          setState(() => _searchQuery = '');
+                          context.read<ItemsModel>().load(search: '');
                         },
                       )
                     : null,
@@ -194,7 +184,7 @@ class _BoardScreenState extends State<BoardScreen> {
                         SizedBox(height: 100),
                         Center(
                           child: Text(
-                            'Объявлений по вашему запросу не найдено',
+                            'Объявлений не найдено',
                             style: TextStyle(color: Colors.grey),
                           ),
                         ),
@@ -203,6 +193,8 @@ class _BoardScreenState extends State<BoardScreen> {
                   );
                 }
 
+                final itemCount = filteredItems.length + (model.hasMore ? 1 : 0);
+
                 return RefreshIndicator(
                   onRefresh: () => context.read<ItemsModel>().load(),
                   child: ListView.separated(
@@ -210,9 +202,19 @@ class _BoardScreenState extends State<BoardScreen> {
                       horizontal: 16,
                       vertical: 8,
                     ),
-                    itemCount: filteredItems.length,
+                    itemCount: itemCount,
                     separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
+                      if (index == filteredItems.length) {
+                        model.loadMore();
+                        return const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+
                       final item = filteredItems[index];
                       return ItemCard(
                         item: item,
