@@ -1,10 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../data/file_api.dart';
 import '../data/models.dart';
-
 import '../data/result.dart';
 import '../models/items_model.dart';
 
@@ -23,17 +24,9 @@ class _NewItemScreenState extends State<NewItemScreen> {
 
   int _selectedType = 0;
   bool _isSubmitting = false;
-  bool _uploadingImage = false;
+  bool _isUploadingImage = false;
   String? _uploadedImageUrl;
-
-  static const _samplePngBytes = <int>[
-    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
-    0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-    0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
-    0x0D, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
-    0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
-    0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
-  ];
+  String? _imageError;
 
   @override
   void dispose() {
@@ -43,31 +36,64 @@ class _NewItemScreenState extends State<NewItemScreen> {
     super.dispose();
   }
 
-  Future<void> _attachPhoto() async {
-    setState(() => _uploadingImage = true);
+  String _getApiBase() {
+    if (kIsWeb) return 'http://localhost:8080';
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:8080';
+    }
+    return 'http://localhost:8080';
+  }
 
-    final res = await context.read<FileApi>().uploadBytes(
-          _samplePngBytes,
-          'item_photo.png',
-        );
+  Future<void> _pickAndUploadImage() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
 
-    if (!mounted) return;
+      if (pickedFile == null) return;
 
-    setState(() => _uploadingImage = false);
+      setState(() {
+        _isUploadingImage = true;
+        _imageError = null;
+      });
 
-    switch (res) {
-      case Ok(:final value):
-        setState(() => _uploadedImageUrl = value);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Фото загружено на сервер: $value')),
-        );
-      case Err(:final msg):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ошибка загрузки фото: $msg'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+      final bytes = await pickedFile.readAsBytes();
+      if (!mounted) return;
+      final fileApi = context.read<FileApi>();
+      final result = await fileApi.uploadBytes(bytes, pickedFile.name);
+
+      if (!mounted) return;
+
+      switch (result) {
+        case Ok(:final value):
+          setState(() {
+            _uploadedImageUrl = value;
+            _isUploadingImage = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Фотография успешно загружена на сервер'),
+            ),
+          );
+        case Err(:final msg):
+          setState(() {
+            _isUploadingImage = false;
+            _imageError = msg;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка загрузки: $msg')),
+          );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isUploadingImage = false;
+        _imageError = 'Не удалось выбрать фото';
+      });
     }
   }
 
@@ -193,27 +219,84 @@ class _NewItemScreenState extends State<NewItemScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: (_isSubmitting || _uploadingImage)
-                    ? null
-                    : _attachPhoto,
-                icon: _uploadingImage
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(
-                        _uploadedImageUrl != null
-                            ? Icons.check_circle_outlined
-                            : Icons.add_a_photo_outlined,
+              if (_isUploadingImage)
+                Container(
+                  height: 160,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 12),
+                        Text('Загрузка фотографии на сервер...'),
+                      ],
+                    ),
+                  ),
+                )
+              else if (_uploadedImageUrl != null)
+                Stack(
+                  children: [
+                    Container(
+                      height: 180,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                       ),
-                label: Text(
-                  _uploadedImageUrl != null
-                      ? 'Фото прикреплено ($_uploadedImageUrl)'
-                      : 'Прикрепить фотографию',
+                      clipBehavior: Clip.antiAlias,
+                      child: Image.network(
+                        '${_getApiBase()}$_uploadedImageUrl',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Center(
+                          child: Icon(Icons.broken_image_outlined, size: 48),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: IconButton.filled(
+                        onPressed: _isSubmitting || _isUploadingImage
+                            ? null
+                            : () => setState(() => _uploadedImageUrl = null),
+                        icon: const Icon(Icons.delete_outline),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.black54,
+                          foregroundColor: Colors.white,
+                        ),
+                        tooltip: 'Удалить фото',
+                      ),
+                    ),
+                  ],
+                )
+              else
+                OutlinedButton.icon(
+                  onPressed: (_isSubmitting || _isUploadingImage)
+                      ? null
+                      : _pickAndUploadImage,
+                  icon: const Icon(Icons.add_photo_alternate_outlined),
+                  label: const Text('Прикрепить фотографию из галереи'),
                 ),
-              ),
+              if (_imageError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    _imageError!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: _isSubmitting ? null : _save,

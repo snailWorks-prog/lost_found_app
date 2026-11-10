@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -13,11 +12,7 @@ import 'router.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final apiBase = kIsWeb
-      ? 'http://localhost:8080'
-      : (defaultTargetPlatform == TargetPlatform.android
-          ? 'http://10.0.2.2:8080'
-          : 'http://localhost:8080');
+  const apiBase = 'http://127.0.0.1:8080';
 
   final tokens = TokenStore();
   final loggedIn = await tokens.read() != null;
